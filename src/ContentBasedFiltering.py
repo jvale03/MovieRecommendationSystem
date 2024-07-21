@@ -1,7 +1,7 @@
 import os
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import linear_kernel
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 from ast import literal_eval
 import numpy as np
 
@@ -80,8 +80,10 @@ def create_soup(x):
     return " ".join(x["keywords"]) + " " + " ".join(x["cast"]) + " " + x["director"] + " " + " ".join(x["genres"])
 
 
-# recommendation based up on credits, keywords and genres
-def get_recommendarion_2():
+# prepare data to be used in our vectorizers
+def data_prepare():
+    global movies
+
     features = ["cast","crew","keywords","genres"]
     # transformar todos os elemetnos em objetos
     for feature in features:
@@ -90,22 +92,64 @@ def get_recommendarion_2():
     # aplicar a todos os elementos da coluna "crew" o get_director
     movies["director"] = movies["crew"].apply(get_director)
 
-    features.remove["crew"]
+    features = ["cast","keywords","genres"]
 
     for feature in features:
         movies[feature] = movies[feature].apply(get_list)
 
-    print(movies.head())
+    # print(movies[["title","cast","keywords","genres"]].head())
 
-    features.append("director")
+    features = ["cast","keywords","director","genres"]
 
     for feature in features:
         movies[feature] = movies[feature].apply(clean_data)
 
     movies["soup"] = movies.apply(create_soup, axis=1)
 
-get_recommendarion_2()
+    # print(movies[["soup"]].head())
+
+
+# CountVectorizer and cosine similarity algorithms
+def data_vectorizer():
+    global movies
+
+    count = CountVectorizer(stop_words="english")
+    count_matrix = count.fit_transform(movies["soup"])
+
+    # compute the cosine similarity matrix
+    cosine_sim = cosine_similarity(count_matrix, count_matrix)
+
+    movies = movies.reset_index()
+
+    indices = pd.Series(movies.index, index=movies["title"]).drop_duplicates()
+
+    return indices, cosine_sim
+
+
+# recommendation based up on credits, keywords and genres
+def get_recommendation(movie_name):
+    indices, cosine_sim = data_vectorizer()
+
+    # movie index that matches the title
+    try:
+        idx = indices[movie_name]
+    except:
+        return "\033[31mNo movies found!\033[m"
+
+
+    # get and sort the similarity scores of all movies with the choosen one
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+
+    # get the 10 most similar
+    sim_scores = sim_scores[1:11]
+    # get the indices
+    movie_indices = [i[0] for i in sim_scores]
+
+    return movies["title"].iloc[movie_indices]
     
-#print(get_recommendation("Toy Story"))
+
+data_prepare()
+print(get_recommendation("Catwalk"))
 
 
