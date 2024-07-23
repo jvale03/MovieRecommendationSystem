@@ -1,6 +1,7 @@
 DataSet/*
 filter.py
 .DS_Store
+Model/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -4,16 +4,27 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 from ast import literal_eval
 import numpy as np
+from joblib import dump,load
+from time import sleep
 
 
 db_path = "../DataSet/"
+model_path = "../Model/"
 
-# csvs
-keywords = pd.read_csv(db_path+"keywords.csv",low_memory=False)
-movies = pd.read_csv(db_path+"movies_metadata.csv",low_memory=False)
-credits = pd.read_csv(db_path+"credits.csv",low_memory=False)
-ratings = pd.read_csv(db_path+"ratings.csv",low_memory=False)
+keywords = None
+ratings = None
+credits = None
+movies = None
 
+# read csvs
+def read_csvs(load):
+    global keywords,movies,credits,ratings
+    if load == True:
+        keywords = pd.read_csv(db_path+"keywords.csv",low_memory=False)
+        credits = pd.read_csv(db_path+"credits.csv",low_memory=False)
+        ratings = pd.read_csv(db_path+"ratings.csv",low_memory=False)
+
+    movies = pd.read_csv(db_path+"movies_metadata.csv",low_memory=False)
     
 
 def process_dataset():
@@ -106,12 +117,15 @@ def data_prepare():
 
     movies["soup"] = movies.apply(create_soup, axis=1)
 
+
     # print(movies[["soup"]].head())
 
 
 # CountVectorizer and cosine similarity algorithms
 def data_vectorizer():
     global movies
+
+    data_prepare()
 
     count = CountVectorizer(stop_words="english")
     count_matrix = count.fit_transform(movies["soup"])
@@ -127,8 +141,7 @@ def data_vectorizer():
 
 
 # recommendation based up on credits, keywords and genres
-def get_recommendation(movie_name):
-    indices, cosine_sim = data_vectorizer()
+def content_based_filtering(movie_name,indices,cosine_sim):
 
     # movie index that matches the title
     try:
@@ -149,7 +162,34 @@ def get_recommendation(movie_name):
     return movies["title"].iloc[movie_indices]
     
 
-data_prepare()
-print(get_recommendation("Catwalk"))
+def save_model(model):
+    print("\033[32mSaving model...\033[m")
+    sleep(0.5)
+    try:
+        dump(model,model_path+"ContentBasedFiltering.joblib")
+        print("\033[32mModel saved!\033[m")
+    except Exception as e:
+        print(f"\033[31mError: {e}\033[m")
+
+def load_model():
+    print("\033[32mLoading model...\033[m")
+    sleep(0.5)
+    try:
+        model = load(model_path + 'ContentBasedFiltering.joblib')
+    except Exception as e:
+        print(f"\033[31mError: {e}")
+        print("Try to save a Content Based Model model first!\033[m")
+
+    return model
+
+
+read_csvs(False)
+
+
+# model = data_vectorizer()
+# save_model(model)
+
+model = load_model()
+print(content_based_filtering("Catwalk",model[0],model[1]))
 
 

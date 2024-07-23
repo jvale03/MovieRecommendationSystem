@@ -3,13 +3,23 @@ import pandas as pd
 from scipy.sparse import csr_matrix
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
+from time import sleep
+from joblib import dump,load
+
 
 db_path = "../DataSet/"
+model_path = "../Model/"
+
+ratings = None
+movies = None
 
 # read csv files from DB
-ratings = pd.read_csv(db_path+"ratings.csv")
-movies = pd.read_csv(db_path+"movies_metadata.csv")
-movies["title"] = movies["title"].astype(str)
+def read_csvs(load):
+    global ratings, movies
+    if load == True:
+        ratings = pd.read_csv(db_path+"ratings.csv")
+    movies = pd.read_csv(db_path+"movies_metadata.csv")
+    movies["title"] = movies["title"].astype(str)
 
 
 def algorithm_prepare():
@@ -42,11 +52,10 @@ def collaborative_filtering(movie_name, knn, final_df, matrix):
     # obtain a list with movies that contain that name
     movie_list = movies[movies['title'].str.contains(movie_name)]
     movie_list = movie_list["id"]
-    print(movie_list)
 
     if len(movie_list):
         # obtain the id of that movie and is correspondent index
-        movie_idx = movie_list.iloc[0]['id']
+        movie_idx = movie_list.iloc[0]["id"]
         movie_idx = final_df[final_df['id'] == movie_idx].index[0]
 
         # knn algorithm search for the closest movies to the given movie, returning the distances and index of the NN
@@ -70,8 +79,30 @@ def collaborative_filtering(movie_name, knn, final_df, matrix):
         return "\033[31mNo movies found!\033[m"
 
 
+def save_model(model):
+    print("\033[32mSaving model...\033[m")
+    sleep(0.5)
+    try:
+        dump(model,model_path+"CollaborativeFiltering.joblib")
+        print("\033[32mModel saved!\033[m")
+    except Exception as e:
+        print(f"\033[31mError: {e}\033[m")
 
+def load_model():
+    print("\033[32mLoading model...\033[m")
+    sleep(0.5)
+    try:
+        model = load(model_path + 'CollaborativeFiltering.joblib')
+    except Exception as e:
+        print(f"\033[31mError: {e}")
+        print("Try to save a Collaborative Filtering model first!\033[m")
 
+    return model
 
+read_csvs(False)
 
+# model = algorithm_prepare()
+# save_model(model)
 
+model = load_model()
+print(collaborative_filtering("Iron Man",model[0],model[1],model[2]))
