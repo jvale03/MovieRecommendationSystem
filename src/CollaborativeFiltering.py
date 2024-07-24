@@ -32,8 +32,8 @@ def algorithm_prepare():
     nr_movies_voted = ratings.groupby("userId")["rating"].agg("count")
 
     # remove users that voted in less than 10 movies and movies that have less than 50 votes
-    final_df = final_df.loc[nr_user_voted[nr_user_voted > 1].index,:]
-    final_df = final_df.loc[:,nr_movies_voted[nr_movies_voted > 1].index]
+    final_df = final_df.loc[nr_user_voted[nr_user_voted > 15].index,:]
+    final_df = final_df.loc[:,nr_movies_voted[nr_movies_voted > 70].index]
 
 
     matrix = csr_matrix(final_df.values)
@@ -49,17 +49,13 @@ def algorithm_prepare():
 # Item-Based Colaborative Filtering to find the 10 movies closest to the respective one 
 def collaborative_filtering(movie_name, knn, final_df, matrix):
     nr_movies_recomend = 15
+
     # obtain a list with movies that contain that name
-    movie_list = movies[movies['title'].str.contains(movie_name)]
-
-    # print(final_df)
-
-    # print(final_df[final_df["movieId"] == 169934])
+    movie_list = movies[movies['title'] == movie_name]
 
     if len(movie_list):
         # obtain the id of that movie and is correspondent index
         movie_idx = movie_list.iloc[0]["id"]
-        print(movie_idx)
         movie_idx = final_df[final_df['movieId'] == movie_idx].index[0]
 
         # knn algorithm search for the closest movies to the given movie, returning the distances and index of the NN
@@ -79,9 +75,13 @@ def collaborative_filtering(movie_name, knn, final_df, matrix):
         # print(recommend_frame)
         # return the dataframe with recomendations
         df = pd.DataFrame(recommend_frame,index=range(1,nr_movies_recomend+1))
-        return df
+        # convert dataframe to list
+        mv_list = df.values.tolist()
+        mv_list = [i[0] for i in mv_list]
+
+        return mv_list
     else:
-        return "\033[31mNo movies found!\033[m"
+        return []
 
 
 def save_model(model):

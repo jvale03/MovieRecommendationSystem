@@ -10,18 +10,26 @@ def test_input(arg):
         collaborative_model = CollaborativeFiltering.load_model()
         print("\033[32mModels loaded!\033[m")
     except Exception as e:
-        print(f"\033[31mError: {e}")
+        print(f"\033[31mError: {e}\033[m")
         print("Try to save a Collaborative Filtering model first!\033[m")
 
-    indices = content_model[0]
-    movie_idx = indices[arg]
+    try: 
+        content_result = ContentBasedFiltering.content_based_filtering(arg,content_model[0],content_model[1])
+        collaborative_result = CollaborativeFiltering.collaborative_filtering(arg,collaborative_model[0],collaborative_model[1],collaborative_model[2])
+    
+    except Exception as e:
+        print(f"\033[31mError: {e}\033[m")
 
-    print(ContentBasedFiltering.content_based_filtering(movie_idx,content_model[0],content_model[1]))
-    print(CollaborativeFiltering.collaborative_filtering(movie_idx,collaborative_model[0],collaborative_model[1],collaborative_model[2]))
+    if len(content_result) or len(collaborative_result):
+        print(content_result)
+        print(collaborative_result)
+        return content_result, collaborative_result
+    else:
+        print(f"\033[31mNo movies found!\033[m")
+
 
 
 def main():
-    print("cheguei")
     if len(sys.argv) > 1:
         test_input(sys.argv[1])
 
@@ -41,8 +49,8 @@ def main():
             
         print("---------------")
         if choice == 1:
-            content_model = ContentBasedFiltering.data_vectorizer()
             CollaborativeFiltering.read_csvs(True)
+            content_model = ContentBasedFiltering.data_vectorizer()
             collaborative_model = CollaborativeFiltering.algorithm_prepare()
     
             true_false = input(f"Save model? y/n: ")

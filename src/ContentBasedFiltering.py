@@ -110,7 +110,7 @@ def content_based_filtering(movie_name,indices,cosine_sim):
     try:
         idx = indices[movie_name]
     except:
-        return "\033[31mNo movies found!\033[m"
+        return []
 
 
     # get and sort the similarity scores of all movies with the choosen one
@@ -122,7 +122,9 @@ def content_based_filtering(movie_name,indices,cosine_sim):
     # get the indices
     movie_indices = [i[0] for i in sim_scores]
 
-    return movies["title"].iloc[movie_indices]
+    # convert to list
+    mvs_list = movies["title"].iloc[movie_indices].tolist()
+    return mvs_list
 
     
 
