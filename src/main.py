@@ -21,8 +21,15 @@ def test_input(arg):
         print(f"\033[31mError: {e}\033[m")
 
     if len(content_result) or len(collaborative_result):
-        print(content_result)
-        print(collaborative_result)
+        print("content:")
+        for content in content_result:
+            print(content)
+
+        print("\ncollaborative")
+        for content in collaborative_result:
+            print(content)
+    
+        print(f"\nResult:\n{list(set(content_result) & set(collaborative_result))}")
         return content_result, collaborative_result
     else:
         print(f"\033[31mNo movies found!\033[m")
@@ -37,10 +44,10 @@ def main():
         choice = 0
         while True:
             print("---------------")
-            choice = input("1: Process models\n2: Get recomendation\nSelect option: ")
+            choice = input("1: Process DataSet (if it's the first time)\n2: Process models\n2: Get recomendation\nSelect option: ")
             if choice.isdigit():
                 choice = int(choice)
-                if choice > 2 or choice < 1:
+                if choice > 3 or choice < 1:
                     print("\033[31mInvalid!\033[m")
                 else:
                         break
@@ -49,6 +56,15 @@ def main():
             
         print("---------------")
         if choice == 1:
+            print(f"\033[32mProcessing DataSet...\033[m")
+            try:
+                ContentBasedFiltering.process_dataset()
+                print(f"\033[32mDataSet Processed!\033[m")
+            except Exception as e:
+                print(f"\033[31mError: {e}!\033[m")
+                
+
+        elif choice == 2:
             CollaborativeFiltering.read_csvs(True)
             content_model = ContentBasedFiltering.data_vectorizer()
             collaborative_model = CollaborativeFiltering.algorithm_prepare()
@@ -64,7 +80,7 @@ def main():
                         print(f"\033[31mError: {e}\033[m")
 
 
-        elif choice == 2:
+        elif choice == 3:
             movie_name = input("Insert your movie: ")
             test_input(movie_name)
             

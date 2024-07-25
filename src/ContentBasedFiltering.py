@@ -12,40 +12,37 @@ db_path = "../DataSet/"
 model_path = "../Model/"
 
 movies = pd.read_csv(db_path+"movie.csv",low_memory=False)
-keywords = None
+tags = pd.read_csv(db_path+"tag.csv")
 ratings = None
-credits = None
     
 
-# not necessary to our database
 def process_dataset():
-    global movies
-    # remove unnecessary columns from csv
-    columns_to_rm = ["belongs_to_collection","budget","homepage","imdb_id","original_language","original_title","adult","popularity","poster_path","production_companies","production_countries","release_date","revenue","runtime","spoken_languages","status","tagline","video","vote_average","vote_count"]
+    global movies, tags
+    
+    # remove unnecessary columns
+    columns_to_rm = ["userId", "timestamp"]
     for column in columns_to_rm:
         try:
-            movies = movies.drop(columns=[column])
+            tags = tags.drop(columns=[column])
         except:
             continue        
-    movies.to_csv(db_path+"movies_metadata.csv",index=False)
+
+    tags.to_csv(db_path+"tag.csv",index=False)
+
     
-    # convert Id column to string
-    keywords["id"] = keywords["id"].astype(str)
-    movies["id"] = movies["id"].astype(str)
-    credits["id"] = credits["id"].astype(str)
-    ratings["movieId"] = ratings["movieId"].astype(str)
+    tags['tag'] = tags['tag'].astype(str).fillna('')
 
-    # made changes only if necessary
-    if "keywords" not in movies.columns or "cast" not in movies.columns:
+    # group tags by movie Id
+    tags_grouped = tags.groupby("id")["tag"].apply(lambda x: ' '.join(x)).reset_index()
 
-        # merge keywords and credits in movies.csv file
-        if "keywords" not in movies.columns:
-            movies = pd.merge(keywords, movies, on="id")
+    # merge datasets
+    movies = pd.merge(movies, tags_grouped, on='id', how='left')
 
-        if "cast" not in movies.columns and "crew" not in movies.columns:
-            movies = pd.merge(movies,credits, on="id")
-        
-        movies.to_csv(db_path+"movies_metadata.csv",index=False)
+    # fill Nan with empty string
+    movies['tag'] = movies['tag'].fillna('')
+    
+    movies.to_csv(db_path+"movie.csv",index=False)
+
 
 
 # not necessary for this database
@@ -79,7 +76,7 @@ def clean_data(x):
 
 # feed cleaned data, given to vectorizer
 def create_soup(x):
-    return "".join(x["genres"])
+    return "".join(x["genres"]) + " " + " ".join(x["tag"])
 
 
 
@@ -87,11 +84,16 @@ def create_soup(x):
 def data_vectorizer():
     global movies
 
+    features = ["genres","tag"]
+
     # prepare data
-    movies["genres"] = movies["genres"].apply(clean_data)
+    for feature in features:
+        movies[feature] = movies[feature].apply(clean_data)
+
+    movies["soup"] = movies.apply(create_soup, axis=1)
 
     count = CountVectorizer(stop_words="english")
-    count_matrix = count.fit_transform(movies["genres"])
+    count_matrix = count.fit_transform(movies["soup"])
 
     # compute the cosine similarity matrix
     cosine_sim = cosine_similarity(count_matrix, count_matrix)
@@ -118,7 +120,7 @@ def content_based_filtering(movie_name,indices,cosine_sim):
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
     # get the 10 most similar
-    sim_scores = sim_scores[1:16]
+    sim_scores = sim_scores[1:21]
     # get the indices
     movie_indices = [i[0] for i in sim_scores]
 
@@ -134,6 +136,5 @@ def save_model(model):
 def load_model():
     model = load(model_path + 'ContentBasedFiltering.joblib')
     return model
-
 
 

@@ -48,7 +48,7 @@ def algorithm_prepare():
 
 # Item-Based Colaborative Filtering to find the 10 movies closest to the respective one 
 def collaborative_filtering(movie_name, knn, final_df, matrix):
-    nr_movies_recomend = 15
+    nr_movies_recomend = 20
 
     # obtain a list with movies that contain that name
     movie_list = movies[movies['title'] == movie_name]
