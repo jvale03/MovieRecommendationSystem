@@ -1,6 +1,7 @@
 import ContentBasedFiltering
 import CollaborativeFiltering
 import sys
+from ModelsCombiner import combine_results
 
 def test_input(arg):
     CollaborativeFiltering.read_csvs(False)
@@ -21,16 +22,13 @@ def test_input(arg):
         print(f"\033[31mError: {e}\033[m")
 
     if len(content_result) or len(collaborative_result):
-        print("content:")
-        for content in content_result:
-            print(content)
+        print(f"Movie: {arg}\n")
+        
+        result = combine_results(content_result,collaborative_result)
 
-        print("\ncollaborative")
-        for content in collaborative_result:
-            print(content)
-    
-        print(f"\nResult:\n{list(set(content_result) & set(collaborative_result))}")
-        return content_result, collaborative_result
+        for i,movie in enumerate(result):
+            print(f"{i+1}: {movie}")
+
     else:
         print(f"\033[31mNo movies found!\033[m")
 
@@ -69,7 +67,7 @@ def main():
             content_model = ContentBasedFiltering.data_vectorizer()
             collaborative_model = CollaborativeFiltering.algorithm_prepare()
     
-            true_false = input(f"Save model? y/n: ")
+            true_false = input(f"Save models? y/n: ")
             if true_false == "y" or true_false == "":
                     print("\033[32mSaving models...\033[m")
                     try:

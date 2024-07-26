@@ -17,7 +17,9 @@ ratings = None
     
 
 def process_dataset():
-    global movies, tags
+    global movies, tags,ratings
+    ratings = pd.read_csv(db_path+"rating.csv")
+
     
     # remove unnecessary columns
     columns_to_rm = ["userId", "timestamp"]
@@ -29,19 +31,30 @@ def process_dataset():
 
     tags.to_csv(db_path+"tag.csv",index=False)
 
-    
-    tags['tag'] = tags['tag'].astype(str).fillna('')
+    try:
+        tags['tag'] = tags['tag'].astype(str).fillna('')
 
-    # group tags by movie Id
-    tags_grouped = tags.groupby("id")["tag"].apply(lambda x: ' '.join(x)).reset_index()
+        # group tags by movie Id
+        tags_grouped = tags.groupby("id")["tag"].apply(lambda x: ' '.join(x)).reset_index()
 
-    # merge datasets
-    movies = pd.merge(movies, tags_grouped, on='id', how='left')
+        # merge datasets
+        movies = pd.merge(movies, tags_grouped, on='id', how='left')
 
-    # fill Nan with empty string
-    movies['tag'] = movies['tag'].fillna('')
-    
-    movies.to_csv(db_path+"movie.csv",index=False)
+        # fill Nan with empty string
+        movies['tag'] = movies['tag'].fillna('')
+        
+        movies.to_csv(db_path+"movie.csv",index=False)
+    except:
+        None
+
+    # remove users that voted less than 15 times
+    user_counts = ratings['userId'].value_counts()
+
+    valid_users = user_counts[user_counts >= 80].index
+
+    ratings = ratings[ratings['userId'].isin(valid_users)]
+
+    ratings.to_csv(db_path+"rating.csv",index=False)
 
 
 

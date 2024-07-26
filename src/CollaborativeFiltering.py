@@ -28,12 +28,10 @@ def algorithm_prepare():
     final_df.fillna(0,inplace=True) # replace NaN values with 0
 
     # get the number of movies that each user voted and number of users that voted in each movie
-    nr_user_voted = ratings.groupby("movieId")["rating"].agg("count")
     nr_movies_voted = ratings.groupby("userId")["rating"].agg("count")
 
     # remove users that voted in less than 10 movies and movies that have less than 50 votes
-    final_df = final_df.loc[nr_user_voted[nr_user_voted > 15].index,:]
-    final_df = final_df.loc[:,nr_movies_voted[nr_movies_voted > 70].index]
+    final_df = final_df.loc[:,nr_movies_voted[nr_movies_voted > 35].index]
 
 
     matrix = csr_matrix(final_df.values)
@@ -56,7 +54,10 @@ def collaborative_filtering(movie_name, knn, final_df, matrix):
     if len(movie_list):
         # obtain the id of that movie and is correspondent index
         movie_idx = movie_list.iloc[0]["id"]
-        movie_idx = final_df[final_df['movieId'] == movie_idx].index[0]
+        try:
+            movie_idx = final_df[final_df['movieId'] == movie_idx].index[0]
+        except:
+            return ["That movie does not have enough votes for collaborative filtering"]
 
         # knn algorithm search for the closest movies to the given movie, returning the distances and index of the NN
         distances , indices = knn.kneighbors(matrix[movie_idx],n_neighbors=nr_movies_recomend+1)    
