@@ -42,7 +42,7 @@ def main():
         choice = 0
         while True:
             print("---------------")
-            choice = input("1: Process DataSet (if it's the first time)\n2: Process models\n2: Get recomendation\nSelect option: ")
+            choice = input("1: Process DataSet (if it's the first time)\n2: Process models\n3: Get recomendation\nSelect option: ")
             if choice.isdigit():
                 choice = int(choice)
                 if choice > 3 or choice < 1:
@@ -59,14 +59,17 @@ def main():
                 ContentBasedFiltering.process_dataset()
                 print(f"\033[32mDataSet Processed!\033[m")
             except Exception as e:
-                print(f"\033[31mError: {e}!\033[m")
+                print(f"\033[31mError: {e}!\nProbably your data is already processed!\033[m")
                 
 
         elif choice == 2:
-            CollaborativeFiltering.read_csvs(True)
-            content_model = ContentBasedFiltering.data_vectorizer()
-            collaborative_model = CollaborativeFiltering.algorithm_prepare()
-    
+            try:
+                CollaborativeFiltering.read_csvs(True)
+                content_model = ContentBasedFiltering.data_vectorizer()
+                collaborative_model = CollaborativeFiltering.algorithm_prepare()
+            except Exception as e:
+                print(f"\033[31mError: {e}!\033[m")
+
             true_false = input(f"Save models? y/n: ")
             if true_false == "y" or true_false == "":
                     print("\033[32mSaving models...\033[m")
@@ -80,7 +83,11 @@ def main():
 
         elif choice == 3:
             movie_name = input("Insert your movie: ")
-            test_input(movie_name)
+            try:
+                test_input(movie_name)
+            except Exception as e:
+                print(f"\033[31mError: {e}!\033[m")
+
             
 
 main()
