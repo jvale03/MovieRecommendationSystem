@@ -26,9 +26,25 @@ In this case, processing our [DataSet](https://www.kaggle.com/datasets/grouplens
 Recommendation strategy that suggests similar movies based on their attributes. However it limits exposure to different products,  not allowing the exploration of new content.
 
 ### Collaborative Filtering
-Recommendation strategy that considers and compares others users in the database. 
+Recommendation strategy that considers and compares others users in the database. There are various approaches to implementing collaborative filtering, but the fundamental concept is the collective influence of multiple users on the recommendation outcome.
 
-### Refs: 
+### Content and Collaborative Filtering
+As I haven't found any way to combine the two strategies and there is no correct way to do this, thinking of implementing it as follows:
+
+Having the output of each of the strategies mentioned, weights are assigned to each of the films given their position in what is considered the optimal result. Once this is done, we combine the results by adding the weights in case there are coincident films in each of the outputs, in order to obtain a final ordered list with the 10 best recommendations.
+
+## Steps
+### Process DataSet
+First time running the projects it's necessary to **process the dataset**, I recommend to use the DB mencioned in **Refs**.
+
+### Process models
+As the datasets are very large, the models were not made available and it is necessary to create them, saving them later in memory so that they can be used later without using more resources multiple times.
+
+### Get Recommendation
+Return the top 10 similar movies based on your input.
+
+
+## Refs: 
 
 1. Colaborative Filtering: [link](https://www.analyticsvidhya.com/blog/2020/11/create-your-own-movie-movie-recommendation-system/)
 
