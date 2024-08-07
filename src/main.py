@@ -10,28 +10,28 @@ def test_input(arg):
         content_model = ContentBasedFiltering.load_model()
         collaborative_model = CollaborativeFiltering.load_model()
         print("\033[32mModels loaded!\033[m")
+        try: 
+            content_result = ContentBasedFiltering.content_based_filtering(arg,content_model[0],content_model[1])
+            collaborative_result = CollaborativeFiltering.collaborative_filtering(arg,collaborative_model[0],collaborative_model[1],collaborative_model[2])
+    
+            if len(content_result) or len(collaborative_result):
+                print(f"Movie: {arg}\n")
+                
+                result = combine_results(content_result,collaborative_result)
+
+                for i,movie in enumerate(result):
+                    print(f"{i+1}: {movie}")
+
+            else:
+                print(f"\033[31mNo movies found!\033[m")
+                
+        except Exception as e:
+            print(f"\033[31mError: {e}\033[m")
+            
+
     except Exception as e:
         print(f"\033[31mError: {e}\033[m")
         print("Try to save a Collaborative Filtering model first!\033[m")
-
-    try: 
-        content_result = ContentBasedFiltering.content_based_filtering(arg,content_model[0],content_model[1])
-        collaborative_result = CollaborativeFiltering.collaborative_filtering(arg,collaborative_model[0],collaborative_model[1],collaborative_model[2])
-    
-    except Exception as e:
-        print(f"\033[31mError: {e}\033[m")
-
-    if len(content_result) or len(collaborative_result):
-        print(f"Movie: {arg}\n")
-        
-        result = combine_results(content_result,collaborative_result)
-
-        for i,movie in enumerate(result):
-            print(f"{i+1}: {movie}")
-
-    else:
-        print(f"\033[31mNo movies found!\033[m")
-
 
 
 def main():
